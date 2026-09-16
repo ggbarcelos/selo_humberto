@@ -1,0 +1,40 @@
+{
+  "name": "Gerador de selo Eu voto 65065",
+  "short_name": "Eu voto 65065",
+  "description": "Crie e compartilhe seu selo Eu voto 65065 com uma foto.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#C62828",
+  "lang": "pt-BR",
+  "categories": ["lifestyle", "social"],
+  "icons": [
+    {
+      "src": "img/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/pwa/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "img/pwa/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

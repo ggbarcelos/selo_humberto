@@ -33,7 +33,99 @@ const resetBtn = document.querySelector('#resetBtn');
 const downloadBtn = document.querySelector('#downloadBtn');
 const shareBtn = document.querySelector('#shareBtn');
 const status = document.querySelector('#status');
+const installCard = document.querySelector('#installCard');
+const installBtn = document.querySelector('#installBtn');
+const installDescription = document.querySelector('#installDescription');
+const installInstructions = document.querySelector('#installInstructions');
 const overlays = new Map();
+
+let deferredInstallPrompt = null;
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isMobileDevice = isIos || /android|mobile|tablet/i.test(navigator.userAgent);
+const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches === true
+  || navigator.standalone === true;
+
+function setInstallButtonLabel(label) {
+  if (!installBtn) return;
+  installBtn.innerHTML = `${label} <span aria-hidden="true">＋</span>`;
+}
+
+function revealInstallCard(mode = 'manual') {
+  if (!installCard || !installBtn || isStandalone) return;
+  installCard.hidden = false;
+  installBtn.hidden = false;
+  if (mode === 'prompt') {
+    setInstallButtonLabel('Instalar no celular');
+    if (installDescription) installDescription.textContent = 'Abra mais rápido e crie seu selo como um aplicativo.';
+    return;
+  }
+  setInstallButtonLabel('Como instalar');
+  if (installDescription) {
+    installDescription.textContent = isIos
+      ? 'No navegador do iPhone/iPad: use o botão Compartilhar e escolha “Adicionar à Tela de Início”.'
+      : 'Use o menu do navegador e escolha “Instalar aplicativo” ou “Adicionar à tela inicial”.';
+  }
+}
+
+function showInstallInstructions() {
+  if (!installInstructions) return;
+  installInstructions.textContent = isIos
+    ? 'No navegador do iPhone/iPad: toque em Compartilhar, escolha “Adicionar à Tela de Início” e confirme em Adicionar.'
+    : 'Abra o menu ⋮ do navegador e toque em “Instalar aplicativo” ou “Adicionar à tela inicial”.';
+  installInstructions.hidden = false;
+}
+
+function setupInstallExperience() {
+  if (isStandalone) return;
+  if (isIos || isMobileDevice) revealInstallCard('manual');
+
+  installBtn?.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) {
+      showInstallInstructions();
+      return;
+    }
+
+    const promptEvent = deferredInstallPrompt;
+    deferredInstallPrompt = null;
+    try {
+      await promptEvent.prompt();
+      const choice = await promptEvent.userChoice;
+      if (choice?.outcome === 'accepted') {
+        setInstallButtonLabel('Instalando…');
+        if (installDescription) installDescription.textContent = 'Confirme a instalação na janela do navegador.';
+      } else {
+        setInstallButtonLabel('Instalar no celular');
+        if (installDescription) installDescription.textContent = 'Quando quiser, toque novamente para instalar o gerador.';
+      }
+    } catch (error) {
+      console.info('A instalação foi cancelada ou não está disponível.', error);
+      revealInstallCard('manual');
+      showInstallInstructions();
+    }
+  });
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    revealInstallCard('prompt');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    if (installCard) installCard.hidden = true;
+    setStatus('Gerador instalado. Você já pode abrir pelo celular como um app.');
+  });
+}
+
+function registerServiceWorker() {
+  const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+  const canRegister = 'serviceWorker' in navigator
+    && (window.location.protocol === 'https:' || isLocalhost);
+  if (!canRegister) return;
+  navigator.serviceWorker.register('./sw.js', { scope: './' })
+    .catch((error) => console.info('Service worker indisponível neste ambiente.', error));
+}
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -455,4 +547,6 @@ async function init() {
   }
 }
 
+setupInstallExperience();
+registerServiceWorker();
 init();

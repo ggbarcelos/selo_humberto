@@ -283,3 +283,33 @@ body{-webkit-tap-highlight-color:rgba(255,165,57,.22)}
   .action-row #downloadBtn{display:none}
   .action-row #shareBtn{display:inline-flex;width:100%}
 }
+
+/* PWA install prompt: shown only when the browser can install the app or
+   when a mobile browser needs the manual Add to Home Screen instructions. */
+.install-card[hidden]{display:none}
+.install-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin:0 0 30px;
+  padding:20px 22px;
+  border:1px solid rgba(6,33,60,.16);
+  border-left:5px solid var(--orange);
+  border-radius:8px;
+  background:var(--navy);
+  color:#fff;
+  box-shadow:0 12px 26px rgba(6,33,60,.12);
+}
+.install-card-copy{min-width:0}
+.install-kicker{margin:0 0 6px;color:var(--orange);font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
+.install-card h2{margin:0;color:#fff;font-family:Bebas,Impact,sans-serif;font-size:27px;line-height:1;letter-spacing:.7px;text-transform:uppercase}
+.install-card-copy>p:not(.install-kicker):not(.install-instructions){margin:7px 0 0;color:rgba(255,255,255,.76);font-size:12px;line-height:1.45}
+.install-instructions{margin:8px 0 0!important;color:#fff!important;font-size:11px!important;font-weight:700;line-height:1.45!important}
+.button-install{flex:none;min-height:44px;background:var(--orange);color:var(--navy);white-space:nowrap}
+.button-install:hover:not(:disabled),.button-install:focus-visible{background:#ffc064;color:var(--navy)}
+.button-install:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (max-width:640px){
+  .install-card{display:block;margin-bottom:24px;padding:18px 17px}
+  .button-install{width:100%;margin-top:15px}
+}
