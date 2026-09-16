@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+
+# Local tooling and temporary output
+.codex/
+.agents/
+__pycache__/
+*.py[cod]
+*.log
