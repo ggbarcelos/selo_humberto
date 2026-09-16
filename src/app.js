@@ -861,7 +861,7 @@ async function shareImage() {
     if (supportsFileShare) {
       try {
         await Promise.race([
-          navigator.share({ title: 'Sele de Perfil', text: 'Meu apoio ao Humberto Matos', files: [file] }),
+          navigator.share({ title: 'Selo de Perfil', text: 'Meu apoio ao Humberto Matos', files: [file] }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('share-timeout')), 12000)),
         ]);
         setStatus(isMobileLayout()

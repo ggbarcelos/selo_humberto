@@ -1,4 +1,4 @@
-# Sele de Perfil
+# Selo de Perfil
 
 Página estática para a campanha Humberto Matos. A pessoa escolhe uma das três
 molduras, carrega uma foto, ajusta o enquadramento e baixa um PNG quadrado de
