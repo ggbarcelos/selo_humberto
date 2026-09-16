@@ -54,6 +54,8 @@ arco ou pincelada é redesenhado: a moldura original é sempre a última camada,
 que mantém as cores e a opacidade da logo intactas. As bordas antialiasadas da
 palavra `HUMBERTO` recebem uma pequena camada de proteção por modelo, evitando
 que a foto atravesse as letras sem alterar as pinceladas da arte original.
+Nos modelos 2 e 3, o texto superior `EU VOTO` é colorizado no vermelho e no
+amarelo exatos da própria moldura, respectivamente, sem alterar sua sombra.
 
 ## Estrutura Spec Kit
 

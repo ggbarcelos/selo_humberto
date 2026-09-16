@@ -9,7 +9,7 @@ const frames = [
   {
     id: 'modelo-1',
     name: 'Arco clássico',
-    src: 'modelos/modelo1.png?v=19',
+    src: 'modelos/modelo1.png?v=22',
     photoRadius: 446,
     photoCenter: { x: 542, y: 540 },
     logoRegion: { x: 250, y: 774, width: 270, height: 64 },
@@ -18,20 +18,24 @@ const frames = [
   {
     id: 'modelo-2',
     name: 'Faixas de força',
-    src: 'modelos/modelo2.png?v=19',
+    src: 'modelos/modelo2.png?v=22',
     photoRadius: 464,
     photoCenter: { x: 540, y: 595 },
     logoRegion: { x: 315, y: 838, width: 185, height: 46 },
     logoInk: 'navy',
+    headlineRegion: { x: 360, y: 35, width: 340, height: 125 },
+    headlineColor: 'red',
   },
   {
     id: 'modelo-3',
     name: 'Sol popular',
-    src: 'modelos/modelo3.png?v=19',
+    src: 'modelos/modelo3.png?v=22',
     photoRadius: 446,
     photoCenter: { x: 538, y: 602 },
     logoRegion: { x: 500, y: 758, width: 255, height: 63 },
     logoInk: 'navy',
+    headlineRegion: { x: 560, y: 55, width: 340, height: 240 },
+    headlineColor: 'yellow',
   },
 ];
 
@@ -78,6 +82,11 @@ const MASK_ALPHA_THRESHOLD = 32;
 const LOGO_COLORS = {
   navy: [6, 34, 61],
   white: [255, 255, 255],
+};
+
+const HEADLINE_COLORS = {
+  red: [198, 40, 40],
+  yellow: [249, 178, 51],
 };
 
 let deferredInstallPrompt = null;
@@ -194,6 +203,7 @@ async function prepareOverlay(frame) {
     opening.counterMask,
   );
   frame.logoLock = buildLogoLock(image, frame.logoRegion, frame.logoInk);
+  frame.coloredOverlay = buildHeadlineArtwork(image, frame.headlineRegion, frame.headlineColor);
 }
 
 function drawNativeArtwork(context, image) {
@@ -255,6 +265,50 @@ function buildLogoLock(image, region, ink) {
 
   lock.getContext('2d').putImageData(new ImageData(lockData, SIZE, SIZE), 0, 0);
   return lock;
+}
+
+function isHeadlineInkPixel(red, green, blue, alpha) {
+  if (alpha === 0) return false;
+  // The headline is the only near-white artwork inside its narrow region.
+  // The red/yellow background and textured brush colours have a much larger
+  // channel spread, so they remain untouched.
+  return Math.min(red, green, blue) > 120
+    && Math.max(red, green, blue) - Math.min(red, green, blue) < 100;
+}
+
+function buildHeadlineArtwork(image, region, color) {
+  const artwork = document.createElement('canvas');
+  artwork.width = SIZE;
+  artwork.height = SIZE;
+  const artworkContext = artwork.getContext('2d', { willReadFrequently: true });
+  drawNativeArtwork(artworkContext, image);
+  const headlineColor = HEADLINE_COLORS[color];
+  if (!region || !headlineColor) return artwork;
+
+  const artworkData = artworkContext.getImageData(0, 0, SIZE, SIZE);
+  const [red, green, blue] = headlineColor;
+  const startX = Math.max(0, Math.floor(region.x));
+  const startY = Math.max(0, Math.floor(region.y));
+  const endX = Math.min(SIZE, Math.ceil(region.x + region.width));
+  const endY = Math.min(SIZE, Math.ceil(region.y + region.height));
+
+  for (let y = startY; y < endY; y += 1) {
+    for (let x = startX; x < endX; x += 1) {
+      const offset = (y * SIZE + x) * 4;
+      if (!isHeadlineInkPixel(
+        artworkData.data[offset],
+        artworkData.data[offset + 1],
+        artworkData.data[offset + 2],
+        artworkData.data[offset + 3],
+      )) continue;
+      artworkData.data[offset] = red;
+      artworkData.data[offset + 1] = green;
+      artworkData.data[offset + 2] = blue;
+    }
+  }
+
+  artworkContext.putImageData(artworkData, 0, 0);
+  return artwork;
 }
 
 function buildOpeningMask(image, center, counterRegion) {
@@ -495,12 +549,14 @@ function drawScene(targetCanvas, frameIndex = state.frameIndex, image = state.im
   if (image) drawPhoto(targetContext, image, frame, transform, frame.photoRadius, center.x, center.y);
   else drawPlaceholder(targetContext, frame, frame.photoRadius, center.x, center.y);
 
-  const overlay = overlays.get(frame.id);
+  const overlay = frame.coloredOverlay || overlays.get(frame.id);
   if (overlay) {
-    // Preserve the PNG's native pixels (and the official logo colors) instead
-    // of scaling a 1081 px-wide source down to the 1080 px export canvas.
+    // Preserve the PNG's native pixels (and the requested headline colors)
+    // instead of scaling a 1081 px-wide source down to the 1080 px export canvas.
     // This draw is deliberately last: no photo mask or background can make
-    // the Humberto wordmark translucent or recolor its letterforms.
+    // the Humberto wordmark translucent or lose the model's original colours.
+    const overlayWidth = Math.min(SIZE, overlay.naturalWidth || overlay.width || SIZE);
+    const overlayHeight = Math.min(SIZE, overlay.naturalHeight || overlay.height || SIZE);
     targetContext.save();
     targetContext.globalAlpha = 1;
     targetContext.globalCompositeOperation = 'source-over';
@@ -509,12 +565,12 @@ function drawScene(targetCanvas, frameIndex = state.frameIndex, image = state.im
       overlay,
       0,
       0,
-      Math.min(SIZE, overlay.naturalWidth),
-      Math.min(SIZE, overlay.naturalHeight),
+      overlayWidth,
+      overlayHeight,
       0,
       0,
-      Math.min(SIZE, overlay.naturalWidth),
-      Math.min(SIZE, overlay.naturalHeight),
+      overlayWidth,
+      overlayHeight,
     );
     targetContext.restore();
 
@@ -601,6 +657,7 @@ function buildFramePicker() {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'frame-option';
+    button.dataset.frameId = frame.id;
     button.setAttribute('aria-pressed', String(index === state.frameIndex));
     button.setAttribute('aria-label', `${frame.name} — escolher moldura`);
     button.innerHTML = `<img src="${frame.src}" alt="" width="1080" height="1080" />`;
@@ -610,6 +667,22 @@ function buildFramePicker() {
       render();
     });
     picker.append(button);
+  });
+}
+
+function refreshFramePickerArtwork() {
+  frames.forEach((frame) => {
+    const artwork = frame.coloredOverlay;
+    if (!artwork) return;
+    const image = picker.querySelector(`[data-frame-id="${frame.id}"] img`);
+    if (!image) return;
+    try {
+      // Keep the chooser faithful to the final composition, including the
+      // model-specific headline color, while leaving source PNGs untouched.
+      image.src = artwork.toDataURL('image/png');
+    } catch {
+      // The original PNG remains a safe fallback if a browser blocks canvas export.
+    }
   });
 }
 
@@ -901,6 +974,7 @@ async function init() {
   buildFramePicker();
   try {
     await Promise.all(frames.map(prepareOverlay));
+    refreshFramePickerArtwork();
     state.image = await loadImage('img/image22.png');
     render();
   } catch (error) {

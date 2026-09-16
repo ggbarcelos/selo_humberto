@@ -1,4 +1,4 @@
-const CACHE_NAME = 'selo-humberto-v21';
+const CACHE_NAME = 'selo-humberto-v24';
 
 // Only same-origin files that make up the editor are precached. External
 // links (social networks and the official site) are intentionally untouched.
@@ -6,7 +6,7 @@ const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/app.js?v=19',
+  './src/app.js?v=22',
   './src/styles.css',
   './img/pwa/icon-180.png',
   './img/pwa/icon-192.png',
@@ -16,9 +16,9 @@ const CORE_ASSETS = [
   './img/image22.png',
   './img/logohumberto.png',
   './img/numero.png',
-  './modelos/modelo1.png?v=19',
-  './modelos/modelo2.png?v=19',
-  './modelos/modelo3.png?v=19',
+  './modelos/modelo1.png?v=22',
+  './modelos/modelo2.png?v=22',
+  './modelos/modelo3.png?v=22',
   './fonts/BebasNeue.woff2',
   './fonts/Hey-August.woff2',
   './fonts/NexaRustSans-Trial-Black2.woff2',
