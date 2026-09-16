@@ -275,3 +275,11 @@ body{-webkit-tap-highlight-color:rgba(255,165,57,.22)}
   .footer-social-link{min-height:32px;padding:6px 9px;font-size:9px}
   .footer-number-image{grid-column:2;grid-row:1;width:72px}
 }
+
+/* Mobile: keep the native share flow as the single finishing action. */
+@media (max-width:640px){
+  .main-nav .nav-cta{display:none}
+  .action-row{grid-template-columns:1fr}
+  .action-row #downloadBtn{display:none}
+  .action-row #shareBtn{display:inline-flex;width:100%}
+}
